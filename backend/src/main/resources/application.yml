@@ -1,0 +1,92 @@
+spring:
+  application:
+    name: pdcm-api
+  datasource:
+    url: jdbc:postgresql://localhost:5433/pdcm
+    username: pdcm
+    password: pdcm
+    hikari:
+      # Force UTC after connect so Windows Asia/Calcutta is not sent as session TZ.
+      connection-init-sql: SET TIME ZONE 'UTC'
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+  flyway:
+    enabled: true
+  docker:
+    compose:
+      # Use root docker-compose.yml manually. Enable only with profile `docker`.
+      enabled: false
+      lifecycle-management: start-and-stop
+      file: compose.yaml
+
+server:
+  port: 8080
+
+pdcm:
+  security:
+    jwt:
+      # Override with PDCM_JWT_SECRET ( >= 32 chars / 256 bits ). Never commit real secrets.
+      secret: ${PDCM_JWT_SECRET:local-dev-only-pdcm-jwt-secret-change-me-32b}
+      ttl-minutes: 60
+  cors:
+    allowed-origins:
+      - ${PDCM_CORS_ORIGIN:http://localhost:5173}
+  admin:
+    email: ${PDCM_ADMIN_EMAIL:admin@pdcm.local}
+    password: ${PDCM_ADMIN_PASSWORD:}
+    display-name: ${PDCM_ADMIN_DISPLAY_NAME:PDCM Admin}
+  external-traffic:
+    enabled: true
+    provider: TOMTOM
+    # Provide locally only: set PDCM_TOMTOM_API_KEY. Never commit real keys or send to React.
+    api-key: ${PDCM_TOMTOM_API_KEY:}
+    base-url: https://api.tomtom.com
+    flow-path-template: /traffic/services/4/flowSegmentData/absolute/{zoom}/json
+    # Zoom fallback: stop at first geographically valid segment. Each attempt counts.
+    flow-zoom-fallbacks: [18, 15, 12, 10]
+    # Shared destination cache / desired refresh interval (on-demand only).
+    cache-ttl-minutes: 180
+    # Keep false — no background polling / scheduled API requests.
+    schedule-enabled: false
+    schedule-fixed-delay-ms: 10800000
+    # Free-tier hard caps (UTC). No Pay As You Grow / silent paid switch.
+    daily-request-budget: 500
+    monthly-request-budget: 15000
+    # Traffic Incidents not implemented this pass (would be 1500/month if enabled).
+    incidents-enabled: false
+    incidents-monthly-request-budget: 1500
+    max-segment-distance-meters: 750
+    connect-timeout-ms: 3000
+    read-timeout-ms: 5000
+    max-consecutive-failures-before-open: 5
+    circuit-open-minutes: 15
+    rate-limit-backoff-minutes: 15
+    attribution: "Traffic data © TomTom"
+    pilot-slugs:
+      - amber-fort
+      - gateway-of-india
+      - hawa-mahal
+      - india-gate
+      - taj-mahal
+  report-verification:
+    # Proximity signal only — LOCATION_VERIFIED is not proof a report is genuine.
+    geofence-radius-meters: 500
+    max-accuracy-meters: 150
+    # Raw client lat/lon/accuracy retained at most this long (default 24h), then purged.
+    coordinate-retention: PT24H
+    purge-enabled: true
+    purge-fixed-delay-ms: 300000
+    india-lat-min: 6.0
+    india-lat-max: 37.5
+    india-lon-min: 68.0
+    india-lon-max: 98.0
+
+logging:
+  level:
+    org.flywaydb: INFO

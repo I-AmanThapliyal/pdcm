@@ -1,0 +1,21 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Segoe UI", system-ui, sans-serif;
+  --font-display: Georgia, "Times New Roman", serif;
+  --color-paper: #f3eee4;
+  --color-ink: #1c1917;
+  --color-clay: #9a3412;
+  --color-line: #e4dccf;
+}
+
+body {
+  margin: 0;
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+h1, h2, .display {
+  font-family: var(--font-display);
+}

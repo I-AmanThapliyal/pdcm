@@ -39,3 +39,24 @@ Serving a **stale** in-memory observation briefly when the free-tier budget is e
 ## If Terms remain unclear or stricter
 
 Keep in-memory cache only (current behaviour). Do **not** add Flyway tables for traffic observations. Prefer serving `UNAVAILABLE` over persisting restricted payloads.
+
+## Pilot size & free-tier headroom
+
+Configured pilots are **slug allowlist only** (not nationwide). Coverage validation results: [TOMTOM_PILOT_COVERAGE.md](TOMTOM_PILOT_COVERAGE.md).
+
+Illustrative math if/when **50** places are verified usable:
+
+| Item | Value |
+|---|---|
+| Cache TTL | 180 minutes |
+| Theoretical refreshes/destination/day | ≤8 if every TTL is fully used |
+| 50 × 8 | 400 refreshes/day |
+| At 1 Flow call each | ~12_000 / month |
+| PDCM monthly hard cap | 15_000 (≈3_000 headroom for zoom fallbacks) |
+| Worst case 4 zooms every refresh | 1_600/day → 48_000/month — exceeds free tier and app cap |
+| Daily hard budget | 500 (always wins) |
+| TomTom free monthly (approx.) | 20_000; PDCM stays under 15_000 Flow |
+| Schedule / Incidents | Off |
+| Paid / Pay As You Grow | Disabled |
+
+No promise of 8 refreshes/day for every pilot destination. On-demand + shared 3h cache only.

@@ -100,11 +100,11 @@ class ExternalTrafficIntegrationTest {
 
 	@Test
 	void firstRequest_callsProviderOnce_thenCacheWithinTtl() throws Exception {
-		Destination taj = destinationRepository.findBySlugAndActiveTrue("taj-mahal").orElseThrow();
+		Destination pilot = destinationRepository.findBySlugAndActiveTrue("india-gate").orElseThrow();
 		when(trafficProvider.fetchFlow(anyDouble(), anyDouble(), anyInt()))
-				.thenReturn(nearReading(taj, 20, 60, "FRC3"));
+				.thenReturn(nearReading(pilot, 20, 60, "FRC3"));
 
-		Long id = taj.getId();
+		Long id = pilot.getId();
 
 		mockMvc.perform(get("/api/destinations/{id}/traffic/external", id).accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
@@ -128,13 +128,13 @@ class ExternalTrafficIntegrationTest {
 
 	@Test
 	void expiredCache_triggersNewProviderCall() throws Exception {
-		Destination taj = destinationRepository.findBySlugAndActiveTrue("taj-mahal").orElseThrow();
+		Destination pilot = destinationRepository.findBySlugAndActiveTrue("india-gate").orElseThrow();
 		when(trafficProvider.fetchFlow(anyDouble(), anyDouble(), anyInt()))
-				.thenReturn(nearReading(taj, 40, 60, "FRC2"));
+				.thenReturn(nearReading(pilot, 40, 60, "FRC2"));
 
 		Instant past = Instant.parse("2020-01-01T00:00:00Z");
 		cache.put(new ExternalTrafficObservation(
-				taj.getId(),
+				pilot.getId(),
 				"TOMTOM",
 				ExternalTrafficStatus.LIGHT,
 				55,
@@ -149,7 +149,7 @@ class ExternalTrafficIntegrationTest {
 				ExternalTrafficObservation.SINGLE_ROAD_COVERAGE_NOTE,
 				"stale"));
 
-		mockMvc.perform(get("/api/destinations/{id}/traffic/external", taj.getId()).accept(MediaType.APPLICATION_JSON))
+		mockMvc.perform(get("/api/destinations/{id}/traffic/external", pilot.getId()).accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("MODERATE"))
 				.andExpect(jsonPath("$.currentSpeedKph").value(40));
@@ -159,7 +159,7 @@ class ExternalTrafficIntegrationTest {
 
 	@Test
 	void concurrentSameDestination_singleProviderCall() throws Exception {
-		Destination taj = destinationRepository.findBySlugAndActiveTrue("taj-mahal").orElseThrow();
+		Destination pilot = destinationRepository.findBySlugAndActiveTrue("india-gate").orElseThrow();
 		CountDownLatch started = new CountDownLatch(1);
 		CountDownLatch release = new CountDownLatch(1);
 		AtomicInteger calls = new AtomicInteger();
@@ -170,10 +170,10 @@ class ExternalTrafficIntegrationTest {
 			if (!release.await(5, TimeUnit.SECONDS)) {
 				throw new IllegalStateException("release timeout");
 			}
-			return nearReading(taj, 50, 60, "FRC2");
+			return nearReading(pilot, 50, 60, "FRC2");
 		});
 
-		Long id = taj.getId();
+		Long id = pilot.getId();
 		int threads = 8;
 		ExecutorService pool = Executors.newFixedThreadPool(threads);
 		List<Future<ExternalTrafficResponse>> futures = new ArrayList<>();
@@ -199,15 +199,15 @@ class ExternalTrafficIntegrationTest {
 
 	@Test
 	void zoomFallback_stopsAtFirstValidSegment() throws Exception {
-		Destination taj = destinationRepository.findBySlugAndActiveTrue("taj-mahal").orElseThrow();
+		Destination pilot = destinationRepository.findBySlugAndActiveTrue("india-gate").orElseThrow();
 		when(trafficProvider.fetchFlow(anyDouble(), anyDouble(), eq(18)))
 				.thenThrow(new ProviderUnavailableException("HTTP_400", "no segment at 18"));
 		when(trafficProvider.fetchFlow(anyDouble(), anyDouble(), eq(15)))
 				.thenThrow(new ProviderUnavailableException("HTTP_400", "no segment at 15"));
 		when(trafficProvider.fetchFlow(anyDouble(), anyDouble(), eq(12)))
-				.thenReturn(nearReading(taj, 40, 60, "FRC3"));
+				.thenReturn(nearReading(pilot, 40, 60, "FRC3"));
 
-		mockMvc.perform(get("/api/destinations/{id}/traffic/external", taj.getId()).accept(MediaType.APPLICATION_JSON))
+		mockMvc.perform(get("/api/destinations/{id}/traffic/external", pilot.getId()).accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("MODERATE"))
 				.andExpect(jsonPath("$.coverageAvailable").value(true));
@@ -220,7 +220,7 @@ class ExternalTrafficIntegrationTest {
 
 	@Test
 	void distantGeometry_rejectedAsUnknown() throws Exception {
-		Destination taj = destinationRepository.findBySlugAndActiveTrue("taj-mahal").orElseThrow();
+		Destination pilot = destinationRepository.findBySlugAndActiveTrue("india-gate").orElseThrow();
 		when(trafficProvider.fetchFlow(anyDouble(), anyDouble(), anyInt()))
 				.thenReturn(new FlowSegmentReading(
 						30,
@@ -230,7 +230,7 @@ class ExternalTrafficIntegrationTest {
 						"FRC3",
 						List.of(new FlowSegmentCoordinate(1.0, 1.0))));
 
-		mockMvc.perform(get("/api/destinations/{id}/traffic/external", taj.getId()).accept(MediaType.APPLICATION_JSON))
+		mockMvc.perform(get("/api/destinations/{id}/traffic/external", pilot.getId()).accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("UNKNOWN"))
 				.andExpect(jsonPath("$.coverageAvailable").value(false))
@@ -244,7 +244,7 @@ class ExternalTrafficIntegrationTest {
 		when(trafficProvider.fetchFlow(anyDouble(), anyDouble(), anyInt()))
 				.thenThrow(new ProviderUnavailableException("HTTP_500", "TomTom returned HTTP 500"));
 
-		Long id = destinationRepository.findBySlugAndActiveTrue("taj-mahal").orElseThrow().getId();
+		Long id = destinationRepository.findBySlugAndActiveTrue("india-gate").orElseThrow().getId();
 
 		mockMvc.perform(get("/api/destinations/{id}/traffic/external", id).accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
@@ -254,7 +254,7 @@ class ExternalTrafficIntegrationTest {
 
 	@Test
 	void communityTraffic_unchangedAndSeparate() throws Exception {
-		Long id = destinationRepository.findBySlugAndActiveTrue("taj-mahal").orElseThrow().getId();
+		Long id = destinationRepository.findBySlugAndActiveTrue("india-gate").orElseThrow().getId();
 
 		mockMvc.perform(get("/api/destinations/{id}/traffic", id).accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
@@ -266,7 +266,7 @@ class ExternalTrafficIntegrationTest {
 
 	@Test
 	void nonPilot_returnsUnavailableWithoutCallingProvider() throws Exception {
-		Long id = destinationRepository.findBySlugAndActiveTrue("cherai-beach").orElseThrow().getId();
+		Long id = destinationRepository.findBySlugAndActiveTrue("taj-mahal").orElseThrow().getId();
 
 		mockMvc.perform(get("/api/destinations/{id}/traffic/external", id).accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
@@ -295,15 +295,15 @@ class ExternalTrafficIntegrationTest {
 
 	@Test
 	void dailyBudget_blocksFurtherProviderCalls() throws Exception {
-		Destination tajDest = destinationRepository.findBySlugAndActiveTrue("taj-mahal").orElseThrow();
-		Destination indiaDest = destinationRepository.findBySlugAndActiveTrue("india-gate").orElseThrow();
+		Destination pilotDest = destinationRepository.findBySlugAndActiveTrue("india-gate").orElseThrow();
+		Destination otherPilot = destinationRepository.findBySlugAndActiveTrue("amber-fort").orElseThrow();
 
-		when(trafficProvider.fetchFlow(eq(tajDest.getLatitude()), eq(tajDest.getLongitude()), anyInt()))
-				.thenReturn(nearReading(tajDest, 50, 60, "FRC2"));
-		when(trafficProvider.fetchFlow(eq(indiaDest.getLatitude()), eq(indiaDest.getLongitude()), anyInt()))
-				.thenReturn(nearReading(indiaDest, 50, 60, "FRC2"));
+		when(trafficProvider.fetchFlow(eq(pilotDest.getLatitude()), eq(pilotDest.getLongitude()), anyInt()))
+				.thenReturn(nearReading(pilotDest, 50, 60, "FRC2"));
+		when(trafficProvider.fetchFlow(eq(otherPilot.getLatitude()), eq(otherPilot.getLongitude()), anyInt()))
+				.thenReturn(nearReading(otherPilot, 50, 60, "FRC2"));
 
-		mockMvc.perform(get("/api/destinations/{id}/traffic/external", tajDest.getId())).andExpect(status().isOk());
+		mockMvc.perform(get("/api/destinations/{id}/traffic/external", pilotDest.getId())).andExpect(status().isOk());
 
 		LocalDate day = LocalDate.now(ZoneOffset.UTC);
 		ProviderRequestStats stats = requestStatsRepository.findByProviderAndDayUtc("TOMTOM", day).orElseThrow();
@@ -312,7 +312,7 @@ class ExternalTrafficIntegrationTest {
 		}
 		requestStatsRepository.save(stats);
 
-		mockMvc.perform(get("/api/destinations/{id}/traffic/external", indiaDest.getId()))
+		mockMvc.perform(get("/api/destinations/{id}/traffic/external", otherPilot.getId()))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("UNAVAILABLE"))
 				.andExpect(jsonPath("$.message", containsString("budget")));
@@ -322,10 +322,10 @@ class ExternalTrafficIntegrationTest {
 
 	@Test
 	void expiredCache_withExhaustedBudget_returnsStaleWithoutProviderCall() throws Exception {
-		Destination taj = destinationRepository.findBySlugAndActiveTrue("taj-mahal").orElseThrow();
+		Destination pilot = destinationRepository.findBySlugAndActiveTrue("india-gate").orElseThrow();
 		Instant past = Instant.now().minusSeconds(7200);
 		cache.put(new ExternalTrafficObservation(
-				taj.getId(),
+				pilot.getId(),
 				"TOMTOM",
 				ExternalTrafficStatus.HEAVY,
 				18,
@@ -347,7 +347,7 @@ class ExternalTrafficIntegrationTest {
 		}
 		requestStatsRepository.save(stats);
 
-		mockMvc.perform(get("/api/destinations/{id}/traffic/external", taj.getId()).accept(MediaType.APPLICATION_JSON))
+		mockMvc.perform(get("/api/destinations/{id}/traffic/external", pilot.getId()).accept(MediaType.APPLICATION_JSON))
 				.andExpect(status().isOk())
 				.andExpect(jsonPath("$.status").value("HEAVY"))
 				.andExpect(jsonPath("$.currentSpeedKph").value(18))

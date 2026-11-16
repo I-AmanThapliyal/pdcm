@@ -9,7 +9,7 @@
 | Build | Maven, single module | One deployable for 7-day MVP |
 | Persistence | PostgreSQL 16 + Flyway + JPA | Interview-credible schema history; `ddl-auto=validate` |
 | Auth | Spring Security 7 + Nimbus JWT (self-issued) | No Keycloak; no hand-rolled jjwt filter; lambda DSL only |
-| API docs | springdoc-openapi **3.2.x** | Matches Boot 4.1 |
+| API docs | Markdown contracts in `docs/API_DOCUMENTATION.md` | springdoc/Swagger UI not wired yet |
 | Frontend | React + TS + Vite + Tailwind | Fast dashboard; low ceremony |
 | Geo | lat/lon + Haversine | PostGIS unnecessary for MVP radius ranking |
 | Cache/queue | None in P0 | Redis/Kafka are P1/P2 |
@@ -89,17 +89,20 @@ BCrypt · short-lived JWT · role checks · Bean Validation · generic login err
 - TomTom client logs sanitize URLs and `key=` values; exception messages never include the request URI.
 - Licensing: see `docs/TOMTOM_LICENSING_NOTES.md` — public Flow terms mention ≤24h server storage / no historical warehouse; **not** a project-specific approval.
 
-## External traffic pilot (TomTom) — historical note
+## External traffic pilot (TomTom) — historical note + expansion posture
 
-- Provider-neutral `TrafficProvider`; TomTom Flow Segment Data for five pilot slugs only.
+- Provider-neutral `TrafficProvider`; TomTom Flow Segment Data for **slug allowlist only** (never nationwide).
+- **Configured pilots today:** the original five (`amber-fort`, `gateway-of-india`, `hawa-mahal`, `india-gate`, `taj-mahal`). A ≥50 expansion was prepared with 60 catalogue candidates, but **live geometry validation could not run** without `PDCM_TOMTOM_API_KEY` (0 Flow requests made). Do not treat unvalidated candidates as supported. See [TOMTOM_PILOT_COVERAGE.md](TOMTOM_PILOT_COVERAGE.md) and `scripts/Validate-TomTomPilotCoverage.ps1`.
 - **On-demand only** with a **3-hour** (configurable) shared destination **in-memory** cache. No background polling; `schedule-enabled=false`.
-- Single-flight per destination; zoom fallback **18 → 15 → 12 → 10** (each TomTom hit counts); reject distant geometry.
-- One representative road sample per destination — not destination-wide coverage (UI says so).
+- Single-flight per destination; zoom fallback **18 → 15 → 12 → 10** (each TomTom hit counts); reject distant geometry (>750 m).
+- One representative road sample per destination — not destination-wide coverage (UI: Supported / Unavailable / Stale).
 - Postgres stores `provider_health` + daily request stats (V7) — **not** TomTom payloads. Monthly usage is summed from daily rows (no new Flyway). Licence review still blocks persistent traffic payload storage.
 - Key via `PDCM_TOMTOM_API_KEY` on the API only; never in React/Git. Map tiles remain OSM.
 - Hard budgets: **500/day** and **15_000/month** Flow (UTC); ADMIN `GET /api/admin/providers/traffic/usage` exposes remaining budget. No Pay As You Grow / silent paid switch.
+- **Budget math for a hypothetical verified 50-slug pilot:** 50×8 TTL refreshes/day = 400/day ≈ 12k/month at 1 call each (~3k headroom under 15k). Worst-case 4 zooms → 1600/day / 48k/month exceeds free-tier and app caps; hard budgets always win; no promise of 8 refreshes/day for every place.
 - Community `/traffic` and external `/traffic/external` are separate channels; UI shows both and never merges them. TomTom never drives crowd intensity.
 - Traffic Incidents remain disabled (would be capped at 1_500/month if ever enabled).
+
 
 ## GPS community verification (Phase 3)
 

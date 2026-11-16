@@ -1,5 +1,10 @@
 import { ExternalTrafficBadge, TrafficBadge, ConfidenceNote } from './Badges'
 import { formatWhen } from '../format'
+import {
+  externalCoverageDetail,
+  externalCoverageLabel,
+  externalCoverageVisibility,
+} from '../externalTrafficCoverage'
 import type { ExternalTrafficSummary, TrafficSummary } from '../types'
 
 export function ExternalTrafficPanel({
@@ -15,6 +20,15 @@ export function ExternalTrafficPanel({
     && external.status !== 'UNKNOWN'
     && community.status !== 'UNKNOWN'
     && community.status !== external.status
+
+  const visibility = external
+    ? externalCoverageVisibility({
+        pilotEnabled: external.pilotEnabled,
+        coverageAvailable: external.coverageAvailable,
+        status: external.status,
+        freshness: external.freshness,
+      })
+    : null
 
   return (
     <div className="space-y-4">
@@ -37,12 +51,21 @@ export function ExternalTrafficPanel({
         <h2 className="text-2xl">Approach roads</h2>
         <p className="mt-1 text-sm text-stone-600">External road traffic · never treated as attraction crowd</p>
         {!external && <p className="mt-3 text-sm text-stone-600">Loading external traffic…</p>}
-        {external && (
+        {external && visibility && (
           <>
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <ExternalTrafficBadge status={external.status} />
+              <span className="rounded-full bg-stone-100 px-2.5 py-1 text-sm font-medium text-stone-800">
+                Coverage: {externalCoverageLabel(visibility)}
+              </span>
               <span className="text-sm text-stone-600">
-                {external.freshness.toLowerCase()} · Source: {external.provider === 'TOMTOM' ? 'TomTom' : external.provider}
+                {external.freshness === 'STALE'
+                  ? 'Stale cache'
+                  : external.freshness === 'FRESH'
+                    ? 'Fresh'
+                    : 'No sample'}
+                {' · '}
+                Source: {external.provider === 'TOMTOM' ? 'TomTom' : external.provider}
               </span>
             </div>
             {external.status === 'UNAVAILABLE' || external.status === 'UNKNOWN' ? (
@@ -65,16 +88,19 @@ export function ExternalTrafficPanel({
               </>
             )}
             <p className="mt-2 text-sm text-stone-600">
-              Coverage: {external.coverageAvailable
-                ? (external.coverageNote ?? 'Nearby approach road sample available.')
-                : 'No suitable nearby road sample available.'}
+              {externalCoverageDetail({
+                visibility,
+                pilotEnabled: external.pilotEnabled,
+                coverageNote: external.coverageNote,
+                message: external.message,
+              })}
             </p>
             <p className="mt-1 text-sm text-stone-600">
-              Last fetched {formatWhen(external.fetchedAt)} · freshness {external.freshness.toLowerCase()} · {external.attribution}
+              Last fetched {formatWhen(external.fetchedAt)} · {external.attribution}
             </p>
-            {!external.pilotEnabled && (
-              <p className="mt-2 text-sm text-stone-600">Outside the five-destination TomTom pilot.</p>
-            )}
+            <p className="mt-2 text-xs text-stone-500">
+              Provider availability is not destination-wide road coverage. PDCM samples one nearby approach road when the place is in the TomTom pilot.
+            </p>
           </>
         )}
       </article>

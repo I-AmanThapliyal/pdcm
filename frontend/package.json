@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc --noEmit && vite build",
-    "test": "node --experimental-strip-types --test src/crowdIntensity.test.ts src/dashboardStates.test.ts src/freshness.test.ts src/mapBounds.test.ts src/mapDiscover.test.ts src/reportLocation.test.ts src/suggestionCoordinates.test.ts src/suggestionRejection.test.ts src/suggestionStatus.test.ts src/trustLabel.test.ts",
+    "test": "node --experimental-strip-types --test src/crowdIntensity.test.ts src/dashboardStates.test.ts src/externalTrafficCoverage.test.ts src/freshness.test.ts src/mapBounds.test.ts src/mapDiscover.test.ts src/reportLocation.test.ts src/suggestionCoordinates.test.ts src/suggestionRejection.test.ts src/suggestionStatus.test.ts src/trustLabel.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -46,12 +46,65 @@ public class ExternalTrafficProperties {
 	/** Backoff after HTTP 429 before allowing further TomTom calls. */
 	private int rateLimitBackoffMinutes = 15;
 	private String attribution = "Traffic data © TomTom";
+	/**
+	 * Slug-based TomTom Flow allowlist. Keep in sync with
+	 * {@code pdcm.external-traffic.pilot-slugs}. Only USABLE geometry from
+	 * docs/TOMTOM_PILOT_COVERAGE.md (52 destinations). taj-mahal failed validation.
+	 */
 	private List<String> pilotSlugs = new ArrayList<>(List.of(
-			"amber-fort",
-			"gateway-of-india",
-			"hawa-mahal",
 			"india-gate",
-			"taj-mahal"));
+			"red-fort",
+			"qutb-minar",
+			"lotus-temple",
+			"fatehpur-sikri",
+			"amber-fort",
+			"hawa-mahal",
+			"jaipur-city-palace",
+			"jantar-mantar-jaipur",
+			"nahargarh-fort",
+			"gateway-of-india",
+			"marine-drive",
+			"chhatrapati-shivaji-maharaj-terminus",
+			"haridwar",
+			"mussoorie",
+			"nainital",
+			"shimla-ridge",
+			"golden-temple",
+			"manali-mall-road",
+			"darjeeling-mall",
+			"charminar",
+			"mysore-palace",
+			"hampi-virupaksha-temple",
+			"pondicherry-promenade",
+			"meenakshi-temple",
+			"munnar",
+			"ooty",
+			"kodaikanal",
+			"goa-calangute-beach",
+			"cherai-beach",
+			"kovalam-beach",
+			"brihadeeswarar-temple",
+			"city-palace-udaipur",
+			"mehrangarh-fort",
+			"jodhpur-blue-city-views",
+			"jaisalmer-fort",
+			"pushkar",
+			"sabarmati-ashram",
+			"statue-of-unity",
+			"howrah-bridge",
+			"victoria-memorial",
+			"belur-math",
+			"shaniwar-wada",
+			"aga-khan-palace",
+			"lonavala",
+			"khajuraho-temples",
+			"konark-sun-temple",
+			"ujjain",
+			"tirupati",
+			"kanyakumari",
+			"gokarna",
+			"junagarh-fort"));
+
 
 	public boolean isEnabled() {
 		return enabled;

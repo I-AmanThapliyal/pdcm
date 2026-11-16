@@ -68,12 +68,62 @@ pdcm:
     circuit-open-minutes: 15
     rate-limit-backoff-minutes: 15
     attribution: "Traffic data © TomTom"
+    # Slug allowlist only. Expanded from docs/TOMTOM_PILOT_COVERAGE.md USABLE rows
+    # (52 destinations with nearby road ≤750 m). taj-mahal failed geometry — not listed.
     pilot-slugs:
-      - amber-fort
-      - gateway-of-india
-      - hawa-mahal
       - india-gate
-      - taj-mahal
+      - red-fort
+      - qutb-minar
+      - lotus-temple
+      - fatehpur-sikri
+      - amber-fort
+      - hawa-mahal
+      - jaipur-city-palace
+      - jantar-mantar-jaipur
+      - nahargarh-fort
+      - gateway-of-india
+      - marine-drive
+      - chhatrapati-shivaji-maharaj-terminus
+      - haridwar
+      - mussoorie
+      - nainital
+      - shimla-ridge
+      - golden-temple
+      - manali-mall-road
+      - darjeeling-mall
+      - charminar
+      - mysore-palace
+      - hampi-virupaksha-temple
+      - pondicherry-promenade
+      - meenakshi-temple
+      - munnar
+      - ooty
+      - kodaikanal
+      - goa-calangute-beach
+      - cherai-beach
+      - kovalam-beach
+      - brihadeeswarar-temple
+      - city-palace-udaipur
+      - mehrangarh-fort
+      - jodhpur-blue-city-views
+      - jaisalmer-fort
+      - pushkar
+      - sabarmati-ashram
+      - statue-of-unity
+      - howrah-bridge
+      - victoria-memorial
+      - belur-math
+      - shaniwar-wada
+      - aga-khan-palace
+      - lonavala
+      - khajuraho-temples
+      - konark-sun-temple
+      - ujjain
+      - tirupati
+      - kanyakumari
+      - gokarna
+      - junagarh-fort
+
   report-verification:
     # Proximity signal only — LOCATION_VERIFIED is not proof a report is genuine.
     geofence-radius-meters: 500

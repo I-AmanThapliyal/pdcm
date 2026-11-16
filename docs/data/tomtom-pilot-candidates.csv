@@ -1,0 +1,61 @@
+priority,slug,name,latitude,longitude,selection_reason
+1,india-gate,India Gate,28.6129,77.2295,original-pilot;delhi-ncr
+2,red-fort,Red Fort,28.6562,77.2410,delhi-ncr
+3,qutb-minar,Qutb Minar,28.524355,77.185248,delhi-ncr
+4,lotus-temple,Lotus Temple,28.553325,77.2586,delhi-ncr
+5,taj-mahal,Taj Mahal,27.1751,78.0421,original-pilot;agra
+6,fatehpur-sikri,Fatehpur Sikri,27.091111,77.661111,agra-corridor
+7,amber-fort,Amber Fort,26.9855,75.8513,original-pilot;jaipur
+8,hawa-mahal,Hawa Mahal,26.9239,75.8267,original-pilot;jaipur
+9,jaipur-city-palace,Jaipur City Palace,26.9255,75.8236,jaipur
+10,jantar-mantar-jaipur,Jantar Mantar Jaipur,26.924722,75.825,jaipur
+11,nahargarh-fort,Nahargarh Fort,26.9375,75.815833,jaipur
+12,gateway-of-india,Gateway of India,18.9220,72.8347,original-pilot;mumbai
+13,marine-drive,Marine Drive,18.944,72.823,mumbai
+14,chhatrapati-shivaji-maharaj-terminus,Chhatrapati Shivaji Maharaj Terminus,18.9398,72.8355,mumbai
+15,elephanta-caves,Elephanta Caves,18.963333,72.931389,mumbai
+16,sanjay-gandhi-national-park,Sanjay Gandhi National Park,19.25,72.9167,mumbai
+17,kanheri-caves,Kanheri Caves,19.2083,72.9064,mumbai
+18,haridwar,Haridwar,29.966667,78.166667,north-india
+19,rishikesh,Rishikesh,30.1,78.3,north-india
+20,mussoorie,Mussoorie,30.456111,78.078056,north-india
+21,nainital,Nainital,29.391944,79.454167,north-india
+22,shimla-ridge,Shimla Ridge,31.1048,77.1734,north-india
+23,golden-temple,Golden Temple,31.6200,74.8765,amritsar
+24,manali-mall-road,Manali Mall Road,32.2396,77.1887,himachal
+25,darjeeling-mall,Darjeeling Mall,27.0410,88.2663,hills
+26,varanasi-ghats,Varanasi Ghats,25.3109,83.0107,famous-site
+27,charminar,Charminar,17.361607,78.474657,hyderabad
+28,mysore-palace,Mysore Palace,12.3052,76.6552,karnataka
+29,hampi-virupaksha-temple,Hampi Virupaksha Temple,15.3350,76.4600,karnataka
+30,shore-temple,Shore Temple,12.616389,80.198611,mahabalipuram
+31,pondicherry-promenade,Pondicherry Promenade,11.9338,79.8355,puducherry
+32,meenakshi-temple,Meenakshi Temple,9.9195,78.1193,madurai
+33,munnar,Munnar,10.089167,77.059722,kerala
+34,ooty,Ooty,11.408611,76.693889,nilgiris
+35,kodaikanal,Kodaikanal,10.233333,77.483333,tamil-nadu-hills
+36,goa-calangute-beach,Goa Calangute Beach,15.5497,73.7535,goa
+37,cherai-beach,Cherai Beach,10.1415,76.1784,kerala-coast
+38,kovalam-beach,Kovalam Beach,8.4004,76.9784,kerala-coast
+39,brihadeeswarar-temple,Brihadeeswarar Temple,10.783056,79.1325,thanjavur
+40,city-palace-udaipur,City Palace Udaipur,24.576,73.683,udaipur
+41,mehrangarh-fort,Mehrangarh Fort,26.298056,73.018889,jodhpur
+42,jodhpur-blue-city-views,Jodhpur Blue City Views,26.294444,73.027778,jodhpur
+43,jaisalmer-fort,Jaisalmer Fort,26.9127,70.9126,jaisalmer
+44,pushkar,Pushkar,26.490278,74.554167,rajasthan
+45,sabarmati-ashram,Sabarmati Ashram,23.06,72.580833,ahmedabad
+46,statue-of-unity,Statue of Unity,21.838,73.7191,gujarat
+47,howrah-bridge,Howrah Bridge,22.58527,88.34694,kolkata
+48,victoria-memorial,Victoria Memorial,22.5449,88.3425,kolkata
+49,belur-math,Belur Math,22.632397,88.356518,kolkata
+50,shaniwar-wada,Shaniwar Wada,18.519167,73.855278,pune
+51,aga-khan-palace,Aga Khan Palace,18.552403,73.901522,pune
+52,lonavala,Lonavala,18.748061,73.407219,maharashtra
+53,keoladeo-national-park,Keoladeo National Park,27.166667,77.516667,bharatpur
+54,khajuraho-temples,Khajuraho Temples,24.85,79.933333,madhya-pradesh
+55,konark-sun-temple,Konark Sun Temple,19.887444,86.094596,odisha
+56,ujjain,Ujjain,23.182778,75.777222,madhya-pradesh
+57,tirupati,Tirupati,13.65,79.42,andhra-pradesh
+58,kanyakumari,Kanyakumari,8.091111,77.541667,tamil-nadu
+59,gokarna,Gokarna,14.55,74.31667,karnataka-coast
+60,junagarh-fort,Junagarh Fort,28.02201,73.31772,bikaner

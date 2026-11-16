@@ -25,7 +25,9 @@ Approved sequence: (1) map loading fix → (2) TomTom traffic pilot → (3) GPS 
 
 **Phase 1 (map loading fix): done** — preserve list during refresh; suppress bounds refetch on selection pan.
 
-**Phase 2 (TomTom traffic pilot): done / revised** — `externaltraffic` package; on-demand Flow with **3h** in-memory shared cache; single-flight; zoom fallback 18→15→12→10; geometry validation; daily+monthly free-tier hard budgets (15k Flow/month); provider health/stats (V7); ADMIN usage endpoint; dual traffic UI with honest single-road coverage; schedule remains **off**; Incidents not implemented. Set `PDCM_TOMTOM_API_KEY` locally to exercise live Flow calls.
+**Phase 2 (TomTom traffic pilot): done / revised** — `externaltraffic` package; on-demand Flow with **3h** in-memory shared cache; single-flight; zoom fallback 18→15→12→10; geometry validation; daily+monthly free-tier hard budgets (15k Flow/month); provider health/stats (V7); ADMIN usage endpoint; dual traffic UI with honest single-road coverage (Supported / Unavailable / Stale); schedule remains **off**; Incidents not implemented. Set `PDCM_TOMTOM_API_KEY` locally to exercise live Flow calls.
+
+**TomTom pilot expansion (≥50):** candidate selection (60 existing catalogue slugs, Delhi NCR first) and capped validation tooling are in place (`docs/data/tomtom-pilot-candidates.csv`, `scripts/Validate-TomTomPilotCoverage.ps1`, `docs/TOMTOM_PILOT_COVERAGE.md`). Live validation was **blocked** by a missing API key (0 requests). Allowlist therefore remains the **original five** verified pilots until usable nearby-road segments are confirmed — never invent coverage.
 
 **Phase 3 (GPS community verification): done** — V8 verification columns; geofence proximity; `LOCATION_VERIFIED`-only aggregation cutover; consent UX; precise coords never public.
 

@@ -1,107 +1,272 @@
 # Please Don't Come Here (PDCM)
 
-Intelligent tourist crowd and traffic advisory platform. Travelers see **current crowd status**, **traffic**, **freshness**, **confidence**, and **honest forecasts** before visiting a destination.
+**PDCM** is a tourist crowd and approach-road traffic advisory app for India. Travelers check a destination before they go: current crowd status, community traffic reports, optional external road samples, forecast honesty, and quieter nearby alternatives.
 
-No reports means **unknown**, not quiet. Insufficient history means **insufficient data**, not a fabricated score.
+The product rule is intentional and strict:
 
-## Status
+- **UNKNOWN ≠ QUIET** — missing reports never mean a place is empty.
+- **Insufficient history ≠ fabricated forecasts** — without enough same-weekday verified reports, PDCM returns insufficient data instead of inventing a score.
 
-**Day 5 complete, plus catalogue/map expansion:** the React app at `frontend/` covers the dashboard, destination search, **map discover** (Leaflet + OSM tiles), place detail (crowd, traffic, forecast, alternatives), registration, and visit reports. Catalogue is **~100 verified India destinations** with city + provenance fields. A missing crowd stays unknown. A forecast without five same-weekday reports stays insufficient data.
+Built as a portfolio modular monolith (Spring Boot API + React SPA + PostgreSQL).
 
-## Stack (approved)
+---
 
-| Layer | Choice |
+## Key features
+
+Implemented today (not a roadmap dump):
+
+| Area | What works |
 |---|---|
-| Backend | Java 25, Spring Boot 4.1.x, Maven, Spring Security 7 + Nimbus JWT |
-| Database | PostgreSQL 16, Flyway, JPA/Hibernate (`ddl-auto=validate`) |
-| Frontend | React, TypeScript, Vite, Tailwind |
-| Docs API | springdoc-openapi 3.2.x |
-| Tests | JUnit 5, Mockito, Spring Boot Test, Testcontainers |
-| Run | Docker Compose (local) |
+| Map discover | Leaflet map + list over OSM tiles; viewport query via `GET /api/destinations/map` |
+| Search & filter | Destination list/search with region/category/tags |
+| Community crowd | 6-hour aggregation from **LOCATION_VERIFIED** visit reports only |
+| Community traffic | Separate on-site traveler traffic channel (not merged with road data) |
+| GPS verification + trust | Optional consent-gated proximity check; ADMIN verify/reject/flag; 24h coordinate purge |
+| Aggregation & confidence | Deterministic crowd/traffic scores with confidence + freshness |
+| Forecasts + holidays | Calendar signals (weekend / national holiday / long weekend) and conditional numeric estimates |
+| Alternatives | Nearby quieter-known destinations (never ranks UNKNOWN as confirmed quiet) |
+| External road traffic | TomTom Flow **pilot** for selected slugs — one nearby approach road, not destination-wide |
+| Destination suggestions | Users propose places; ADMIN approve/reject; approved rows join the catalogue with UNKNOWN crowd/traffic and **no** synthetic reports |
 
-## MVP geography
+---
 
-India · timezone `Asia/Kolkata` · national holidays · **~100** seeded destinations (20 legacy + 80 Wikidata-verified). Provenance: [docs/DATA_PROVENANCE.md](docs/DATA_PROVENANCE.md).
+## Screenshots
 
-## Documentation
+Place real screenshots under `docs/screenshots/` (folder is ready; images are **not** committed yet). Suggested files and Markdown references:
 
-| Doc | Purpose |
+| File to add | Caption | README reference |
+|---|---|---|
+| `docs/screenshots/01-dashboard.png` | Dashboard — popularity vs verified crowd honesty | `![Dashboard](docs/screenshots/01-dashboard.png)` |
+| `docs/screenshots/02-map-discover.png` | Map discover (Leaflet + OSM) | `![Map discover](docs/screenshots/02-map-discover.png)` |
+| `docs/screenshots/03-destination-crowd-traffic.png` | Destination detail — crowd + dual traffic panels | `![Destination detail](docs/screenshots/03-destination-crowd-traffic.png)` |
+| `docs/screenshots/04-external-traffic-coverage.png` | Approach roads — Supported / Unavailable / Stale | `![External traffic coverage](docs/screenshots/04-external-traffic-coverage.png)` |
+| `docs/screenshots/05-suggest-admin.png` | Suggestion submit + ADMIN moderation | `![Suggestions and admin](docs/screenshots/05-suggest-admin.png)` |
+
+Until those files exist, treat the table above as the placement guide — do not invent image paths in PRs.
+
+---
+
+## How it works
+
+PDCM keeps three signals separate on purpose:
+
+1. **Community crowd** — how busy the attraction feels, from location-verified traveler reports.
+2. **Community traffic** — on-site visitor traffic from the same report stream (still not roads).
+3. **External road traffic** — TomTom Flow sample of **one nearby approach road** for pilot slugs only.
+
+Freshness and confidence come from real observation windows. No reports → **UNKNOWN**. Provider down / non-pilot / budget exhausted → **UNAVAILABLE** (never “clear roads”). Unsuitable geometry after zoom fallback → **UNKNOWN** coverage.
+
+**TomTom ≠ attraction crowd.** Road speed on an approach segment is never folded into crowd intensity.
+
+Forecasts combine India calendar context with verified same-weekday history when enough samples exist; otherwise they stay insufficient. Alternatives suggest nearby places using the same honesty rules.
+
+---
+
+## Technology stack
+
+Versions verified from `backend/pom.xml`, `frontend/package.json`, and `docker-compose.yml`:
+
+| Layer | Choice | Version / notes |
+|---|---|---|
+| Language | Java | 25 |
+| API | Spring Boot | 4.1.2 (Spring Security 7 + JWT resource server) |
+| Build | Maven Wrapper | `backend/mvnw.cmd` |
+| Database | PostgreSQL | 16 (Docker Compose) |
+| Migrations | Flyway | enabled; JPA `ddl-auto=validate` |
+| Frontend | React + TypeScript + Vite | React 19.2, Vite 7.2, TypeScript 5.9 |
+| Styling | Tailwind CSS | 4.1 (Vite plugin) |
+| Maps | Leaflet + react-leaflet | 1.9 / 5.0; OSM raster tiles |
+| Routing | react-router-dom | 7.9 |
+| Tests | JUnit 5, Mockito, Spring Boot Test, Testcontainers; Node test runner | Backend + frontend |
+
+---
+
+## Architecture
+
+**Modular monolith:** one Spring Boot process, package boundaries under `com.pdcm.*`, one PostgreSQL database, separate React SPA. Crowd, community traffic, and forecasts are computed on read — no precomputed score tables.
+
+```mermaid
+flowchart LR
+  browser[React_Vite] --> api[SpringBoot_API]
+  api --> security[SecurityFilterChain]
+  security --> dest[destination]
+  security --> reports[report]
+  security --> crowd[crowd]
+  security --> traffic[traffic]
+  security --> external[externaltraffic]
+  security --> forecast[forecast]
+  security --> alts[recommendation]
+  security --> suggest[suggestion]
+  dest --> db[(PostgreSQL)]
+  reports --> db
+  crowd --> db
+  traffic --> db
+  external --> db
+  external --> tomtom[TomTom_Flow_API]
+  forecast --> db
+  suggest --> db
+```
+
+No Redis, Kafka, microservices, or PostGIS in this MVP. Details: [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+
+---
+
+## External traffic (TomTom Flow pilot)
+
+Honest scope:
+
+- **Slug allowlist only** — currently the original **five** configured pilots: `amber-fort`, `gateway-of-india`, `hawa-mahal`, `india-gate`, `taj-mahal`.
+- **Not nationwide.** Provider `UP` does not mean every catalogue place has road coverage.
+- **One nearby approach road** per pilot destination (≤750 m geometry check), never destination-wide traffic.
+- **Shared in-memory cache** default **180 minutes**; single-flight per destination; zoom fallback **18 → 15 → 12 → 10** (each attempt counts).
+- **Hard budgets:** 500 Flow requests/day and 15_000/month (UTC). Schedule refresh **off**. Traffic Incidents **off**. No Pay As You Grow.
+- Key: `PDCM_TOMTOM_API_KEY` on the API process only — never in Vite/React or git.
+
+### Expansion status (≥50 target)
+
+60 existing catalogue candidates (Delhi NCR first, then famous Indian sites) are listed in [`docs/data/tomtom-pilot-candidates.csv`](docs/data/tomtom-pilot-candidates.csv). A capped validation script mirrors production zoom + geometry rules:
+
+```powershell
+# Session-only key — never commit it
+$env:PDCM_TOMTOM_API_KEY = "your_free_tier_key"
+powershell -File scripts\Validate-TomTomPilotCoverage.ps1
+```
+
+**Live validation in this pass:** API key was **missing** → **0** TomTom requests → **0** newly verified usable segments. Allowlist therefore stays at **5**. Results + manual plan: [docs/TOMTOM_PILOT_COVERAGE.md](docs/TOMTOM_PILOT_COVERAGE.md).
+
+### Budget mathematics (if/when 50 pilots are verified)
+
+| Assumption | Result |
 |---|---|
-| [docs/PROJECT_REQUIREMENTS.md](docs/PROJECT_REQUIREMENTS.md) | Product rules, P0/P1/P2 |
-| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Modules, request flow |
-| [docs/DATABASE_DESIGN.md](docs/DATABASE_DESIGN.md) | Schema, crowd/traffic algorithms |
-| [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) | Endpoint contracts |
-| [docs/DEVELOPMENT_ROADMAP.md](docs/DEVELOPMENT_ROADMAP.md) | 7-day plan |
-| [docs/TECHNICAL_DECISIONS.md](docs/TECHNICAL_DECISIONS.md) | Decision log |
-| [docs/LEARNING_NOTES.md](docs/LEARNING_NOTES.md) | Interview checklist |
-| [docs/DATA_PROVENANCE.md](docs/DATA_PROVENANCE.md) | Destination sourcing, licensing, map attribution |
-| [docs/proposals/PHASE0_HYBRID_TRAVEL_INTELLIGENCE.md](docs/proposals/PHASE0_HYBRID_TRAVEL_INTELLIGENCE.md) | **Proposed** hybrid architecture (awaiting approval) |
+| Cache 180m | ≤8 theoretical refreshes/destination/day if every TTL is used |
+| 50 × 8 | 400 refreshes/day |
+| 1 Flow call each | ~12_000 / month → ~3_000 headroom under the 15_000 app cap |
+| Worst case 4 zooms every refresh | 1_600/day → ~48_000/month — **exceeds** free-tier and app caps |
+| Daily hard budget 500 | Always wins over desired cadence |
+| TomTom free ~20k/month | PDCM stays under 15k Flow; no paid billing |
 
-## Local run
+There is **no** promise of 8 refreshes/day for every pilot place. On-demand + shared cache only.
 
-Requires Java 25, Docker, and Maven Wrapper (`backend/`).
+Licensing notes (not a legal clearance): [docs/TOMTOM_LICENSING_NOTES.md](docs/TOMTOM_LICENSING_NOTES.md).
 
-```bash
-# Terminal 1 — database (repo root)
+---
+
+## Data provenance
+
+- **~100** active destinations after Flyway V6.
+- **20** legacy seeds (`LEGACY_SEED`) + **80** Wikidata-verified rows (CC0 coordinates).
+- Live crowd/traffic still require **real** location-verified reports — catalogue expansion does not seed observations.
+
+Full sourcing and OSM tile attribution: [docs/DATA_PROVENANCE.md](docs/DATA_PROVENANCE.md).
+
+---
+
+## Getting started
+
+Requirements: **Java 25**, **Docker**, **Node.js 24+**, Maven Wrapper (included).
+
+### 1. Database (PowerShell, repo root)
+
+```powershell
 docker compose up -d
-# Postgres on localhost:5433
-
-# Terminal 2 — API
-cd backend
-# Optional: set PDCM_JWT_SECRET to a 32+ char secret
-# Optional admin bootstrap: set PDCM_ADMIN_PASSWORD
-set JAVA_TOOL_OPTIONS=-Duser.timezone=UTC
-mvnw.cmd spring-boot:run
+# Postgres on localhost:5433  (db/user/password: pdcm)
 ```
 
-```bash
+### 2. Backend API
+
+```powershell
 cd backend
-mvnw.cmd test
+# Optional (recommended for non-local demos):
+# $env:PDCM_JWT_SECRET = "<32+ char secret>"
+# $env:PDCM_ADMIN_PASSWORD = "<admin password>"
+# $env:PDCM_TOMTOM_API_KEY = "<free-tier key>"   # API process only
+$env:JAVA_TOOL_OPTIONS = "-Duser.timezone=UTC"
+.\mvnw.cmd spring-boot:run
+# http://localhost:8080
 ```
 
-```bash
-# Terminal 3 — UI (Node.js 24). Vite proxies /api to the API.
+### 3. Frontend
+
+```powershell
 cd frontend
 npm install
 npm run dev
-# http://localhost:5173 — Map discover at /map
+# http://localhost:5173
+# Map: /map · Suggest: /suggest · Admin moderation: /admin/moderation · Admin suggestions: /admin/suggestions
 ```
 
-Optional: set `VITE_OSM_TILE_URL` to change the OSM raster tile template (default `https://tile.openstreetmap.org/{z}/{x}/{y}.png`). Community tiles are best-effort with no availability guarantee. See [tile usage policy](https://operations.osmfoundation.org/policies/tiles/).
+Vite proxies `/api` to the backend. Optional: `$env:VITE_OSM_TILE_URL` to override the OSM raster template (default community tiles; follow the [OSM tile usage policy](https://operations.osmfoundation.org/policies/tiles/)).
 
-Optional TomTom pilot (API process only — never in Vite/React):
+### 4. Tests
 
-```bash
-set PDCM_TOMTOM_API_KEY=your_free_tier_key
-# On-demand only — keep schedule off (default):
-# pdcm.external-traffic.schedule-enabled=false
-# Shared destination cache TTL (default 180 minutes):
-# pdcm.external-traffic.cache-ttl-minutes=180
-# Free-tier hard caps (UTC): daily 500, monthly Flow 15000
+```powershell
+cd backend
+.\mvnw.cmd test
+
+cd ..\frontend
+npm test
 ```
 
-External road traffic stays separate from community traffic. One nearby road sample per destination (not destination-wide). Paid overages / Pay As You Grow stay disabled via hard daily + monthly request budgets. ADMIN: `GET /api/admin/providers/traffic/usage`.
+### Environment variables (no secrets in git)
 
-Useful checks:
+| Variable | Where | Purpose |
+|---|---|---|
+| `PDCM_JWT_SECRET` | API | HS256 secret (≥32 chars). Dev default exists for local only. |
+| `PDCM_ADMIN_EMAIL` / `PDCM_ADMIN_PASSWORD` / `PDCM_ADMIN_DISPLAY_NAME` | API | Optional admin bootstrap |
+| `PDCM_CORS_ORIGIN` | API | CORS origin (default `http://localhost:5173`) |
+| `PDCM_TOMTOM_API_KEY` | API only | Enables TomTom Flow for pilot slugs |
+| `VITE_OSM_TILE_URL` | Frontend | Optional OSM tile URL template |
 
-```bash
+Never commit real keys. Prefer `.env` / `application-local.yml` (gitignored) for machine-local overrides.
+
+---
+
+## API and project docs
+
+| Doc | Purpose |
+|---|---|
+| [docs/API_DOCUMENTATION.md](docs/API_DOCUMENTATION.md) | Endpoint contracts |
+| [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) | Modules and request flow |
+| [docs/DATABASE_DESIGN.md](docs/DATABASE_DESIGN.md) | Schema and aggregation rules |
+| [docs/PROJECT_REQUIREMENTS.md](docs/PROJECT_REQUIREMENTS.md) | Product rules (P0/P1/P2) |
+| [docs/TECHNICAL_DECISIONS.md](docs/TECHNICAL_DECISIONS.md) | Decision log |
+| [docs/DEVELOPMENT_ROADMAP.md](docs/DEVELOPMENT_ROADMAP.md) | Build phases |
+| [docs/DATA_PROVENANCE.md](docs/DATA_PROVENANCE.md) | Catalogue sourcing |
+| [docs/TOMTOM_PILOT_COVERAGE.md](docs/TOMTOM_PILOT_COVERAGE.md) | Pilot candidates + validation |
+| [docs/TOMTOM_LICENSING_NOTES.md](docs/TOMTOM_LICENSING_NOTES.md) | Flow caching / terms notes |
+| [docs/LEARNING_NOTES.md](docs/LEARNING_NOTES.md) | Interview checklist |
+
+**Swagger UI** is not enabled in this repository (no springdoc dependency). Use the Markdown API doc and live JSON responses.
+
+Useful smoke checks once the API is up:
+
+```powershell
 curl "http://localhost:8080/api/destinations"
 curl "http://localhost:8080/api/destinations/map?south=6.5&west=68&north=35.5&east=97&limit=100"
-curl -X POST "http://localhost:8080/api/auth/register" -H "Content-Type: application/json" -d "{\"email\":\"you@example.com\",\"displayName\":\"You\",\"password\":\"password123\"}"
-curl -X POST "http://localhost:8080/api/auth/login" -H "Content-Type: application/json" -d "{\"email\":\"you@example.com\",\"password\":\"password123\"}"
-curl "http://localhost:8080/api/me" -H "Authorization: Bearer <token>"
-curl -X POST "http://localhost:8080/api/destinations/1/reports" -H "Authorization: Bearer <token>" -H "Content-Type: application/json" -d "{\"crowdIntensity\":3,\"trafficCondition\":\"MODERATE\",\"observedAt\":\"2026-11-14T12:00:00Z\",\"locationConsent\":false}"
-curl "http://localhost:8080/api/destinations/1/crowd"
-curl "http://localhost:8080/api/destinations/1/traffic"
-curl "http://localhost:8080/api/destinations/1/traffic/external"
 curl "http://localhost:8080/api/providers/traffic/status"
-curl "http://localhost:8080/api/destinations/1/forecast?date=2026-12-25"
-curl "http://localhost:8080/api/destinations/1/alternatives?radiusKm=20"
 curl "http://localhost:8080/api/dashboard"
 ```
 
-The UI is `http://localhost:5173` (map at `/map`; suggest at `/suggest`; ADMIN moderation at `/admin/moderation`; ADMIN suggestions at `/admin/suggestions`). Swagger is still later. Flyway **V5** adds `holidays` and the forecast history index. Flyway **V6** adds `city` / provenance columns and ~80 verified destinations (no fabricated reports). Flyway **V8** adds GPS verification columns; **V9** adds moderation audit + coord-purge support (default 24h retention). Flyway **V10** adds destination suggestions + approval audit (approved places join the catalogue with UNKNOWN crowd/traffic; no synthetic reports).
+---
 
-## License
+## Current status vs future
 
-Personal portfolio project. Not for commercial use of third-party free APIs without checking their terms.
+**Implemented:** auth/JWT roles, visit reports with GPS verification and moderation, crowd + community traffic aggregation, forecasts with holiday calendar, alternatives, ~100-destination catalogue, map discover, destination suggestions workflow, dashboard information-quality fields, TomTom Flow pilot with budgets/cache/zoom fallback (5 configured slugs).
+
+**Prepared but not live-verified:** TomTom allowlist expansion to ≥50 (candidates + script ready; blocked without API key).
+
+**Not claimed / deferred:** nationwide road coverage, TomTom Incidents, scheduled Flow polling, springdoc Swagger UI, Redis/Kafka/microservices, paid map/traffic tiers, LLM insights, CI/CD cloud deploy.
+
+---
+
+## License and attribution
+
+Personal portfolio project. No separate open-source license file is published for the PDCM application code.
+
+Third-party notices that do apply:
+
+- Map tiles © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors.
+- Destination coordinates for Wikidata rows: [CC0](https://www.wikidata.org/wiki/Wikidata:Licensing).
+- Optional traffic data © TomTom (when `PDCM_TOMTOM_API_KEY` is configured) — respect TomTom free-tier and product terms; see [docs/TOMTOM_LICENSING_NOTES.md](docs/TOMTOM_LICENSING_NOTES.md).
+
+Not for commercial use of third-party free APIs without checking their terms.

@@ -15,6 +15,7 @@ flowchart LR
   security --> external[externaltraffic]
   security --> forecast[forecast]
   security --> alts[recommendation]
+  security --> suggest[suggestion]
   dest --> db[(PostgreSQL)]
   reports --> db
   crowd --> db
@@ -22,7 +23,9 @@ flowchart LR
   external --> db
   external --> tomtom[TomTom_Flow_API]
   forecast --> db
+  suggest --> db
 ```
+
 
 ## Packages (`com.pdcm`)
 

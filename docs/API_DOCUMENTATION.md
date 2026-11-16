@@ -4,7 +4,8 @@ Base path: `/api`. JSON. Timestamps: **ISO-8601 UTC** ending in `Z`.
 
 Auth: `Authorization: Bearer <access_token>` where noted. Access token ~60 minutes, HS256. No refresh token in MVP.
 
-Interactive docs (Phase 1+): `/swagger-ui.html`, OpenAPI `/v3/api-docs`.
+Interactive Swagger/OpenAPI UI is **not** wired in this repo yet (no springdoc dependency). Use this document and the running JSON APIs.
+
 
 ## Auth
 
@@ -137,6 +138,11 @@ Separate channel from community traffic. Pilot destinations call TomTom Flow Seg
 ```
 
 `status` may be `LIGHT` | `MODERATE` | `HEAVY` | `UNKNOWN` | `UNAVAILABLE`. Missing key, non-pilot place, budget exhaustion, rate-limit backoff, or provider errors yield `UNAVAILABLE` — never quiet. Distant/unsuitable geometry after zoom fallback yields `UNKNOWN`. Configure `PDCM_TOMTOM_API_KEY` on the API process only. Scheduled refresh stays **off** (`pdcm.external-traffic.schedule-enabled=false`). Hard budgets default to **500/day** and **15_000/month** Flow Segment requests (UTC); no Pay As You Grow.
+
+Pilot allowlist is slug-based (`pdcm.external-traffic.pilot-slugs`). Current configured size is the **verified** set only (originally five destinations). Expansion candidates and validation results: [TOMTOM_PILOT_COVERAGE.md](TOMTOM_PILOT_COVERAGE.md). Coverage is **one nearby approach road**, never destination-wide or nationwide. UI distinguishes **Supported / Unavailable / Stale**; provider `UP` is not destination-wide coverage.
+
+**Budget math (illustrative for a 50-place pilot, if/when verified):** 180m cache → ≤8 theoretical refreshes/destination/day → 50×8=400/day → ~12k/month if 1 call each (~3k headroom under 15k). Worst-case 4 zooms every refresh → 1600/day / 48k/month exceeds limits; hard budgets always win; no promise of 8 refreshes/day for all; schedule and incidents stay off; no paid billing.
+
 
 ### Crowd response (shape)
 

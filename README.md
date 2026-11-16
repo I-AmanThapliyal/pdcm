@@ -32,17 +32,45 @@ Implemented today (not a roadmap dump):
 
 ## Screenshots
 
-Place real screenshots under `docs/screenshots/` (folder is ready; images are **not** committed yet). Suggested files and Markdown references:
+### Dashboard
 
-| File to add | Caption | README reference |
-|---|---|---|
-| `docs/screenshots/01-dashboard.png` | Dashboard — popularity vs verified crowd honesty | `![Dashboard](docs/screenshots/01-dashboard.png)` |
-| `docs/screenshots/02-map-discover.png` | Map discover (Leaflet + OSM) | `![Map discover](docs/screenshots/02-map-discover.png)` |
-| `docs/screenshots/03-destination-crowd-traffic.png` | Destination detail — crowd + dual traffic panels | `![Destination detail](docs/screenshots/03-destination-crowd-traffic.png)` |
-| `docs/screenshots/04-external-traffic-coverage.png` | Approach roads — Supported / Unavailable / Stale | `![External traffic coverage](docs/screenshots/04-external-traffic-coverage.png)` |
-| `docs/screenshots/05-suggest-admin.png` | Suggestion submit + ADMIN moderation | `![Suggestions and admin](docs/screenshots/05-suggest-admin.png)` |
+![Dashboard](docs/screenshots/01-dashboard.png)
 
-Until those files exist, treat the table above as the placement guide — do not invent image paths in PRs.
+### Map discover
+
+![Map discover](docs/screenshots/02-map-discover.png)
+
+### Destination detail
+
+![Destination detail](docs/screenshots/03-destination-detail.png)
+
+### Forecast and alternatives
+
+![Forecast and alternatives](docs/screenshots/04-forecast-alternatives.png)
+
+### Visit report
+
+![Visit report](docs/screenshots/05-visit-report.png)
+
+### Popular places
+
+![Popular places](docs/screenshots/06-popular-places.png)
+
+### Recent reports
+
+![Recent reports](docs/screenshots/07-recent-reports.png)
+
+### Suggest a destination
+
+![Suggest a destination](docs/screenshots/08-suggest-destination.png)
+
+### My suggestions
+
+![My suggestions](docs/screenshots/09-my-suggestions.png)
+
+### Approved suggestion
+
+![Approved suggestion](docs/screenshots/10-approved-suggestion.png)
 
 ---
 
